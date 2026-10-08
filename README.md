@@ -9,20 +9,22 @@ A Multinomial Naive Bayes classifier that separates spam from legitimate ("ham")
 > **Course:** `B.Tech CS&E (Semester VII)` · **Author:** `Vinil Shah` · **Date:** `October 2026`
 
 ## Table of Contents
+
 1. [Abstract](#abstract)
 2. [Problem Statement & Motivation](#problem-statement--motivation)
 3. [Methodology](#methodology)
 4. [Experimental Results](#experimental-results)
 5. [Error Analysis](#error-analysis)
 6. [Repository Structure & Setup](#repository-structure--setup)
-7. [Conclusion & Future Work](#conclusion--future-work)
-8. [References & License](#references--license)
+7. [Reproducibility Notes](#reproducibility-notes)
+8. [Conclusion & Future Work](#conclusion--future-work)
+9. [References & License](#references--license)
 
 ---
 
 ## Abstract
 
-This project builds and evaluates a supervised classifier for SMS spam detection on the UCI SMS Spam Collection (5,574 labelled messages; ~13% spam). Messages are normalised with a pipeline of lowercasing, punctuation removal, stop-word removal and Porter stemming, then vectorised using Bag-of-Words and TF-IDF representations. A Multinomial Naive Bayes classifier is trained on a stratified 80/20 split (`random_state=42`). The TF-IDF model achieves `0.9603` accuracy, `1.0` precision, `0.6797` recall and an F1-score of `0.8093` on the held-out test set. Because misclassifying legitimate messages as spam is costly, the analysis emphasises precision alongside recall, and a manual error analysis examines the remaining false positives and false negatives.
+This project builds and evaluates a supervised classifier for SMS spam detection on the UCI SMS Spam Collection (5,572 raw messages; ~12.5% spam after deduplication). Messages are normalised using a pipeline of lowercasing, punctuation removal, stop-word removal, and Porter stemming, then vectorised using Bag-of-Words (BoW) and TF-IDF representations. A Multinomial Naive Bayes classifier is trained on a stratified 80/20 split (`random_state=42`). On the held-out test set (1,032 messages), **Bag-of-Words emerges as the overall best model**, achieving `0.9816` accuracy, `0.9360` precision, `0.9141` recall, and an F1-score of `0.9249`. While **TF-IDF achieves perfect precision (`1.0000`)** with zero false positives, its recall drops significantly to `0.6797` (`0.8093` F1). A detailed error analysis examines failure modes, trade-offs between precision and recall, and regional/temporal dataset biases.
 
 ## Problem Statement & Motivation
 
@@ -30,7 +32,7 @@ Unsolicited SMS messages are a nuisance and a vector for phishing and fraud. A p
 
 Two characteristics make the task instructive:
 
-- **Class imbalance:** about 87% of messages are ham, so accuracy alone is misleading. A model that labels everything "ham" would score ~87% while detecting no spam.
+- **Class imbalance:** about 87.5% of messages are ham, so accuracy alone is misleading. A model that labels everything "ham" would score ~87.5% while detecting no spam.
 - **Asymmetric error costs:** a false positive (blocked legitimate message) is usually more harmful than a false negative (spam reaching the inbox). Precision is therefore a primary metric.
 
 **Objectives:** (1) build a reproducible classification pipeline, (2) compare BoW and TF-IDF features, (3) evaluate with metrics appropriate to imbalanced data, and (4) understand failure modes through error analysis.
@@ -38,7 +40,8 @@ Two characteristics make the task instructive:
 ## Methodology
 
 ### Dataset
-UCI SMS Spam Collection (Almeida et al., 2011): 5,574 English messages labelled `ham` or `spam` (4,827 / 747). Exact duplicates are removed before splitting to prevent train/test leakage, leaving `5158` unique messages (`4516` ham, `642` spam). Labels are encoded as ham = 0, spam = 1. The dataset is downloaded automatically on first run.
+
+UCI SMS Spam Collection (Almeida et al., 2011): 5,572 raw English messages labelled `ham` or `spam`. Exact duplicates (403) are removed before splitting to prevent train/test leakage, leaving `5,158` unique messages (`4,516` ham, `642` spam). Labels are encoded as ham = 0, spam = 1. The train/test split yields `4,126` training samples and `1,032` testing samples. The dataset is downloaded automatically on first run.
 
 ![Class distribution](reports/figures/class_distribution.png)
 ![Text statistics](reports/figures/text_statistics.png)
@@ -77,38 +80,41 @@ $$\hat{c} = \arg\max_{c\in\{\text{ham},\text{spam}\}} \; \ln P(c) + \sum_{t} x_t
 
 with Laplace-smoothed likelihoods
 
-$$P(t\mid c) = \frac{N_{t,c} + \alpha}{\sum_{t'} N_{t',c} + \alpha\,|V|}, \qquad \alpha = 1$$
+$$P(t\mid c) = \frac{N_{t,c} + \alpha}{\sum_{t'} N_{t',c} + \alpha\,\vert{}V\vert{}}, \qquad \alpha = 1$$
 
-where $N_{t,c}$ is the total weight of term $t$ in class $c$ and $|V|$ is the vocabulary size. The "naive" assumption is that terms are conditionally independent given the class. Despite being unrealistic, it yields a fast and strong text baseline.
+where $N_{t,c}$ is the total weight of term $t$ in class $c$ and $\vert{}V\vert{}$ is the vocabulary size. The "naive" assumption is that terms are conditionally independent given the class. Despite being unrealistic, it yields a fast and strong text baseline.
 
 ### Evaluation protocol
+
 Stratified 80/20 train/test split (`random_state=42`). Metrics are computed for the spam class:
-$\text{Precision} = \frac{TP}{TP+FP}$, $\text{Recall} = \frac{TP}{TP+FN}$, $F_1 = \frac{2PR}{P+R}$.
+
+$$\text{Precision} = \frac{TP}{TP+FP}, \quad \text{Recall} = \frac{TP}{TP+FN}, \quad F_1 = \frac{2 \cdot \text{Precision} \cdot \text{Recall}}{\text{Precision} + \text{Recall}}$$
 
 ## Experimental Results
 
-| Features | Accuracy | Precision | Recall | F1-score |
-|----------|:--------:|:---------:|:------:|:--------:|
-| Bag-of-Words | 0.9816 | 0.936 | 0.9141 | 0.9249 |
-| TF-IDF | 0.9603 | 1.0 | 0.6797 | 0.8093 |
+| Model / Feature Set | Vocabulary | Accuracy | Precision | Recall | F1-score | TN | FP | FN | TP |
+|---------------------|:----------:|:--------:|:---------:|:------:|:--------:|:--:|:--:|:--:|:--:|
+| **Bag-of-Words**    | 6,446      | **0.9816**| 0.9360    | **0.9141**| **0.9249**| 896 | 8  | 11 | 117 |
+| **TF-IDF**          | 6,446      | 0.9603   | **1.0000**| 0.6797 | 0.8093   | 904 | 0  | 41 | 87  |
 
-### Confusion matrix (TF-IDF)
+### Confusion Matrices
 
-![Confusion matrix](reports/figures/confusion_matrix_tfidf.png)
+| Bag-of-Words Baseline | TF-IDF Representation |
+|:---------------------:|:----------------------:|
+| ![Confusion matrix BoW](reports/figures/confusion_matrix_bow.png) | ![Confusion matrix TF-IDF](reports/figures/confusion_matrix_tfidf.png) |
 
 ## Error Analysis
 
-Misclassified test messages are extracted and inspected by `src/error_analysis.py` (output in `reports/run_log.txt`).
+Misclassified test messages are extracted and inspected by `src/error_analysis.py` (output logged to `reports/run_log.txt`).
 
-**False positives (ham flagged as spam):** `0`
-
-**False negatives (spam missed):** `41`
+- **False positives (ham flagged as spam):** `0` (TF-IDF model) / `8` (BoW model)
+- **False negatives (spam missed):** `41` (TF-IDF model) / `11` (BoW model)
 
 **Insights:** An analysis of the model's misclassifications reveals core limitations of the TF-IDF bag-of-words approach alongside key dataset biases. False positives primarily occur when benign messages contain high-weight promotional keywords like "free" or "call," whereas false negatives stem from conversational spam that disguises intent using informal phrasing or non-standard spelling. Because the bag-of-words model discards word order and syntax, it fails to capture semantic nuance, negation, and sentence-level context. Additionally, the dataset reflects significant regional and temporal biases—relying heavily on early-2010s British mobile conventions—which limits its ability to generalize to modern smishing vectors like package delivery phishing, MFA spoofing, and international dialects.
 
 ## Repository Structure & Setup
 
-```
+```text
 sms-spam-classifier/
 ├── data/raw/                 # dataset (downloaded automatically, git-ignored)
 ├── models/                   # trained models (.joblib, git-ignored)
@@ -132,13 +138,14 @@ sms-spam-classifier/
 ```
 
 ### Prerequisites
+
 - [uv](https://docs.astral.sh/uv/) (Nix users: the included `flake.nix` provides uv and Python)
 - Internet access on the first run only: the dataset (UCI) and NLTK stop-word list are downloaded and cached automatically. No manual download is needed.
 
 ### Quickstart
 
 ```bash
-git clone https://github.com/<your-username>/sms-spam-classifier.git
+git clone [https://github.com/vinilshah1/sms-spam-classifier.git](https://github.com/vinilshah1/sms-spam-classifier.git)
 cd sms-spam-classifier
 
 nix develop          # optional: Nix users only
@@ -158,11 +165,13 @@ uv run python -m src.error_analysis   # inspect misclassified messages (needs tr
 uv run python -m src.predict "Congratulations! You won $1,000!"
 ```
 
-### Reproducibility notes
-- Dependencies are pinned in `uv.lock`; `--frozen` installs them exactly without re-resolving.
-- The train/test split is stratified with `random_state=42`.
-- If the automatic download fails, get the data from the [UCI repository](https://archive.ics.uci.edu/dataset/228/sms+spam+collection) and place the `SMSSpamCollection` file in `data/raw/`.
-- NLTK data is stored in `~/nltk_data` (outside the lockfile) and fetched on first use.
+## Reproducibility Notes
+
+- **Environment Lock:** All Python dependencies and transitives are pinned strictly in `uv.lock`. Running `uv sync --frozen` installs the exact dependency graph without re-resolving packages across platforms.
+- **Random Seed:** The train/test split and all stochastic operations use `random_state=42` with stratified sampling, ensuring bit-for-bit identical evaluation metrics across runs.
+- **Dataset Fallback:** If automatic fetching fails, download the zip manually from the [UCI Machine Learning Repository](https://archive.ics.uci.edu/dataset/228/sms+spam+collection) and extract `SMSSpamCollection` directly into `data/raw/`.
+- **NLTK Cache:** NLTK resources (`stopwords`, `punkt`) are cached in `~/nltk_data` and verified before processing begins.
+- **Headless Execution:** Matplotlib uses the non-interactive `Agg` backend (`matplotlib.use("Agg")`), allowing script execution on headless Linux servers or CI/CD systems without display server errors.
 
 ## Conclusion & Future Work
 
@@ -170,15 +179,16 @@ uv run python -m src.predict "Congratulations! You won $1,000!"
 
 **Limitations.** Bag-of-words ignores word order; the dataset is small, English-only and dated (~2004, UK-centric); and Naive Bayes probabilities are not well calibrated.
 
-**Future work**
-- Compare against Logistic Regression, Linear SVM and ensemble models
-- Add word and character n-grams; preserve signals such as `£`, `$`, `!`, URLs and digit patterns instead of discarding them
-- Ablation: stemming vs. lemmatisation vs. no normalisation
-- Tune the decision threshold with a precision-recall curve to target a chosen precision level
-- Stratified k-fold cross-validation and hyperparameter search (e.g. `alpha`)
-- Probability calibration (`CalibratedClassifierCV`)
-- Transformer embeddings (e.g. DistilBERT) and evaluation on more recent spam data
-- Deploy as a small web app (Streamlit or FastAPI)
+**Future Work:**
+
+- Compare against Logistic Regression, Linear SVM, and Gradient Boosted Decision Trees (LightGBM/XGBoost).
+- Add word and character $n$-grams ($n=2,3$); preserve structural signals such as currency symbols (`£`, `$`), punctuation density (`!`, `?`), URLs, and numeric patterns instead of stripping them during preprocessing.
+- Conduct an ablation study evaluating Stemming vs. Lemmatisation vs. No Normalisation.
+- Tune decision thresholds using Precision-Recall curves to enforce operational false-positive ceilings.
+- Perform Stratified $k$-Fold Cross-Validation and hyperparameter search for Laplace smoothing ($\alpha$).
+- Implement probability calibration (`CalibratedClassifierCV`) to output realistic risk scores.
+- Benchmark Transformer embeddings (e.g., `DistilBERT`, `RoBERTa`) against contemporary spam datasets.
+- Package the inference engine into a REST API (FastAPI) or Streamlit Web Interface for real-time demonstration.
 
 ## References & License
 
@@ -186,4 +196,4 @@ uv run python -m src.predict "Congratulations! You won $1,000!"
 - Pedregosa et al. (2011). *Scikit-learn: Machine Learning in Python.* JMLR 12, 2825–2830.
 - Manning, Raghavan & Schütze (2008). *Introduction to Information Retrieval*, Cambridge University Press (TF-IDF; Naive Bayes text classification).
 
-Released under the [MIT License](LICENSE). Check the dataset's own license and citation requirements on its UCI page.
+Released under the [MIT License](https://www.google.com/search?q=LICENSE). Check the dataset's own license and citation requirements on its UCI page.
