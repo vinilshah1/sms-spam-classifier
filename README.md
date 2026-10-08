@@ -166,7 +166,7 @@ uv run python -m src.predict "Congratulations! You won $1,000!"
 
 ## Conclusion & Future Work
 
-**Conclusion.** `<!-- TODO -->` Multinomial Naive Bayes with `<best feature set>` reached `__` precision and `__` recall on held-out data, confirming that a simple probabilistic model is a strong baseline for SMS spam detection. `<State whether BoW or TF-IDF won and by how much.>`
+**Conclusion.** Multinomial Naive Bayes with Bag-of-Words features reached 93.60% precision and 91.41% recall on held-out data, confirming that a simple probabilistic model is a strong baseline for SMS spam detection. Overall, Bag-of-Words outperformed TF-IDF by 11.56 percentage points in F1-score (0.9249 vs. 0.8093) and 2.13 percentage points in accuracy (98.16% vs. 96.03%). While TF-IDF achieved a perfect 100% precision with zero false positives, its recall dropped severely to 67.97% (letting 41 spam messages slip through compared to only 11 for Bag-of-Words), making Bag-of-Words the more effective overall feature representation.
 
 **Limitations.** Bag-of-words ignores word order; the dataset is small, English-only and dated (~2004, UK-centric); and Naive Bayes probabilities are not well calibrated.
 
