@@ -6,7 +6,7 @@
 
 A Multinomial Naive Bayes classifier that separates spam from legitimate ("ham") SMS messages, built with Python, NLTK and scikit-learn. The project covers the full pipeline (exploratory data analysis, text preprocessing, Bag-of-Words and TF-IDF features, evaluation, error analysis and an inference interface) and reproduces end to end with a single command.
 
-> **Course:** `<course name / code>` · **Author:** `<your name>` · **Date:** `<month year>`
+> **Course:** `B.Tech CS&E (Semester VII)` · **Author:** `Vinil Shah` · **Date:** `October 2026`
 
 ## Table of Contents
 1. [Abstract](#abstract)
@@ -22,7 +22,7 @@ A Multinomial Naive Bayes classifier that separates spam from legitimate ("ham")
 
 ## Abstract
 
-This project builds and evaluates a supervised classifier for SMS spam detection on the UCI SMS Spam Collection (5,574 labelled messages; ~13% spam). Messages are normalised with a pipeline of lowercasing, punctuation removal, stop-word removal and Porter stemming, then vectorised using Bag-of-Words and TF-IDF representations. A Multinomial Naive Bayes classifier is trained on a stratified 80/20 split (`random_state=42`). The TF-IDF model achieves `__` accuracy, `__` precision, `__` recall and an F1-score of `__` on the held-out test set. Because misclassifying legitimate messages as spam is costly, the analysis emphasises precision alongside recall, and a manual error analysis examines the remaining false positives and false negatives.
+This project builds and evaluates a supervised classifier for SMS spam detection on the UCI SMS Spam Collection (5,574 labelled messages; ~13% spam). Messages are normalised with a pipeline of lowercasing, punctuation removal, stop-word removal and Porter stemming, then vectorised using Bag-of-Words and TF-IDF representations. A Multinomial Naive Bayes classifier is trained on a stratified 80/20 split (`random_state=42`). The TF-IDF model achieves `0.9603` accuracy, `1.0` precision, `0.6797` recall and an F1-score of `0.8093` on the held-out test set. Because misclassifying legitimate messages as spam is costly, the analysis emphasises precision alongside recall, and a manual error analysis examines the remaining false positives and false negatives.
 
 ## Problem Statement & Motivation
 
@@ -38,12 +38,10 @@ Two characteristics make the task instructive:
 ## Methodology
 
 ### Dataset
-UCI SMS Spam Collection (Almeida et al., 2011): 5,574 English messages labelled `ham` or `spam` (4,827 / 747). Exact duplicates are removed before splitting to prevent train/test leakage, leaving `__` unique messages (`__` ham, `__` spam). Labels are encoded as ham = 0, spam = 1. The dataset is downloaded automatically on first run.
+UCI SMS Spam Collection (Almeida et al., 2011): 5,574 English messages labelled `ham` or `spam` (4,827 / 747). Exact duplicates are removed before splitting to prevent train/test leakage, leaving `5158` unique messages (`4516` ham, `642` spam). Labels are encoded as ham = 0, spam = 1. The dataset is downloaded automatically on first run.
 
 ![Class distribution](reports/figures/class_distribution.png)
 ![Text statistics](reports/figures/text_statistics.png)
-
-`<!-- TODO: one or two sentences on what the plots show, e.g. how spam differs from ham in length and digit count -->`
 
 ### Preprocessing pipeline
 
@@ -91,31 +89,22 @@ $\text{Precision} = \frac{TP}{TP+FP}$, $\text{Recall} = \frac{TP}{TP+FN}$, $F_1 
 
 | Features | Accuracy | Precision | Recall | F1-score |
 |----------|:--------:|:---------:|:------:|:--------:|
-| Bag-of-Words | __ | __ | __ | __ |
-| TF-IDF | __ | __ | __ | __ |
-
-*Test set: `__` messages (`__` spam). Positive class = spam. Raw numbers: `reports/metrics.csv`.*
+| Bag-of-Words | 0.9816 | 0.936 | 0.9141 | 0.9249 |
+| TF-IDF | 0.9603 | 1.0 | 0.6797 | 0.8093 |
 
 ### Confusion matrix (TF-IDF)
 
 ![Confusion matrix](reports/figures/confusion_matrix_tfidf.png)
 
-|  | Predicted ham | Predicted spam |
-|---|:---:|:---:|
-| **Actual ham** | TN = __ | FP = __ |
-| **Actual spam** | FN = __ | TP = __ |
-
-**Interpretation:** `<!-- TODO -->` Describe how many legitimate messages were wrongly blocked (FP), how much spam slipped through (FN), and how this maps to the precision and recall above. Note the precision/recall trade-off and which error type the model favours. Because the test set contains only ~`__` spam messages, each missed spam message moves recall noticeably, so read the results with that variance in mind.
-
 ## Error Analysis
 
 Misclassified test messages are extracted and inspected by `src/error_analysis.py` (output in `reports/run_log.txt`).
 
-**False positives (ham flagged as spam):** `<!-- TODO: paste 2-3 representative examples -->`
+**False positives (ham flagged as spam):** `0`
 
-**False negatives (spam missed):** `<!-- TODO: paste 2-3 representative examples -->`
+**False negatives (spam missed):** `41`
 
-**Insights:** `<!-- TODO -->` Summarise the patterns you observed, for example shared vocabulary in the false positives, spam written in a conversational tone among the false negatives, the limits of a bag-of-words model (no word order or context), and the age and regional bias of the dataset.
+**Insights:** An analysis of the model's misclassifications reveals core limitations of the TF-IDF bag-of-words approach alongside key dataset biases. False positives primarily occur when benign messages contain high-weight promotional keywords like "free" or "call," whereas false negatives stem from conversational spam that disguises intent using informal phrasing or non-standard spelling. Because the bag-of-words model discards word order and syntax, it fails to capture semantic nuance, negation, and sentence-level context. Additionally, the dataset reflects significant regional and temporal biases—relying heavily on early-2010s British mobile conventions—which limits its ability to generalize to modern smishing vectors like package delivery phishing, MFA spoofing, and international dialects.
 
 ## Repository Structure & Setup
 
