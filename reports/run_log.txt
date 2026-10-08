@@ -1,0 +1,154 @@
+
+################################################################################
+# 1/4  Exploratory data analysis
+################################################################################
+Raw shape: (5572, 2)
+Null values:
+label      0
+message    0
+dtype: int64
+
+Duplicate messages: 403
+Shape after cleaning/deduplication: (5158, 3)
+
+Class counts:
+ label
+ham     4516
+spam     642
+Name: count, dtype: int64
+
+Class percentages:
+ label
+ham     87.55
+spam    12.45
+Name: proportion, dtype: float64
+
+Text statistics by class:
+label                      ham        spam
+char_len    count  4516.000000  642.000000
+            mean     70.869575  137.408100
+            std      56.708714   29.977971
+            min       2.000000   13.000000
+            25%      34.000000  131.000000
+            50%      53.000000  148.000000
+            75%      91.000000  157.000000
+            max     910.000000  223.000000
+word_count  count  4516.000000  642.000000
+            mean     14.239814   23.699377
+            std      11.179471    5.968584
+            min       1.000000    2.000000
+            25%       7.000000   21.250000
+            50%      11.000000   25.000000
+            75%      19.000000   28.000000
+            max     171.000000   35.000000
+digit_count count  4516.000000  642.000000
+            mean      0.296723   15.442368
+            std       1.023359    8.943083
+            min       0.000000    0.000000
+            25%       0.000000    9.000000
+            50%       0.000000   16.000000
+            75%       0.000000   22.000000
+            max      23.000000   47.000000
+
+[done in 2.6s]
+
+################################################################################
+# 2/4  Training and evaluation
+################################################################################
+Train: 4126 | Test: 1032
+
+[Bag-of-Words] vocabulary size: 6446
+[Bag-of-Words] Confusion counts: TN=896 FP=8 FN=11 TP=117
+              precision    recall  f1-score   support
+
+         ham     0.9879    0.9912    0.9895       904
+        spam     0.9360    0.9141    0.9249       128
+
+    accuracy                         0.9816      1032
+   macro avg     0.9619    0.9526    0.9572      1032
+weighted avg     0.9814    0.9816    0.9815      1032
+
+
+[TF-IDF] vocabulary size: 6446
+[TF-IDF] Confusion counts: TN=904 FP=0 FN=41 TP=87
+              precision    recall  f1-score   support
+
+         ham     0.9566    1.0000    0.9778       904
+        spam     1.0000    0.6797    0.8093       128
+
+    accuracy                         0.9603      1032
+   macro avg     0.9783    0.8398    0.8936      1032
+weighted avg     0.9620    0.9603    0.9569      1032
+
+
+=== Model comparison (positive class = spam) ===
+              accuracy  precision  recall      f1
+Bag-of-Words    0.9816      0.936  0.9141  0.9249
+TF-IDF          0.9603      1.000  0.6797  0.8093
+
+[done in 4.2s]
+
+################################################################################
+# 3/4  Error analysis
+################################################################################
+
+================================================================================
+FALSE POSITIVES: legitimate messages flagged as spam  (showing 0 of 0)
+================================================================================
+
+================================================================================
+FALSE NEGATIVES: spam that slipped through  (showing 5 of 41)
+================================================================================
+1. P(spam) = 0.001
+   Sorry I missed your call let's talk when you have the time. I'm on
+   07090201529 
+
+2. P(spam) = 0.012
+   Babe: U want me dont u baby! Im nasty and have a thing 4 filthyguys. Fancy a
+   rude time with a sexy bitch. How about we go slo n hard! Txt XXX SLO(4msgs) 
+
+3. P(spam) = 0.030
+   dating:i have had two of these. Only started after i sent a text to talk
+   sport radio last week. Any connection do you think or coincidence? 
+
+4. P(spam) = 0.044
+   Guess who am I?This is the first time I created a web page WWW.ASJESUS.COM
+   read all I wrote. I'm waiting for your opinions. I want to be your friend
+   1/1 
+
+5. P(spam) = 0.045
+   Block Breaker now comes in deluxe format with new features and great
+   graphics from T-Mobile. Buy for just £5 by replying GET BBDELUXE and take
+   the challenge 
+
+
+================================================================================
+NEAR MISSES: ham with the highest spam probability  (showing 5 of 904)
+================================================================================
+1. P(spam) = 0.398
+   K k:) sms chat with me. 
+
+2. P(spam) = 0.321
+   Are you free now?can i call now? 
+
+3. P(spam) = 0.318
+   Have you laid your airtel line to rest? 
+
+4. P(spam) = 0.254
+   Unlimited texts. Limited minutes. 
+
+5. P(spam) = 0.247
+   Mostly sports type..lyk footbl,crckt.. 
+
+
+[done in 0.6s]
+
+################################################################################
+# 4/4  Demo predictions
+################################################################################
+[SPAM] P(spam)=0.942 | Congratulations! You won $1,000! Call 0900-555-0100 now to claim your prize.
+[ HAM] P(spam)=0.004 | Hey, are we still meeting for lunch at 1pm tomorrow?
+[SPAM] P(spam)=0.763 | URGENT! Your account has been selected for a FREE gift. Text WIN to 80082.
+[ HAM] P(spam)=0.006 | Can you pick up some milk on your way home?
+
+[done in 0.0s]
